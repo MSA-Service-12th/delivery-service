@@ -25,7 +25,30 @@ public class Delivery {
     @Enumerated(EnumType.STRING)
     private DeliveryStatus status;
 
-    private boolean deleted = false;
+    private UUID departureHubId;
+
+    private String departureHubAddress;
+
+    private UUID receiptHubId;
+
+    private String receiptHubAddress;
+
+    private UUID hubManagerId;
+
+    private UUID receiptCompanyId;
+
+    private String receiptCompanyName;
+
+    private UUID receiptCompanySlackId;
+
+    private String receiptCompanyAddress;
+
+    private UUID hubCourierId;
+
+    private UUID companyCourierId;
+
+
+
 
     public Delivery(UUID orderId) {
         this.orderId = orderId;
@@ -45,13 +68,5 @@ public class Delivery {
         this.status = status;
     }
 
-    public void delete() {
-        this.deleted = true;
-    }
 
-//    //  삭제 (Soft Delete)
-//    public void delete(String deletedBy) {
-//        this.deletedAt = LocalDateTime.now();
-//        this.deletedBy = deletedBy;
-//    }
 }

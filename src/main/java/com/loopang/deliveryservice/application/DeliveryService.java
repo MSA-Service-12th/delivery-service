@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -17,7 +18,7 @@ public class DeliveryService {
     private final DeliveryRepository deliveryRepository;
 
     // 배송 생성
-    public Long createDelivery(Long orderId) {
+    public UUID createDelivery(UUID orderId) {
         Delivery delivery = new Delivery(orderId);
         deliveryRepository.save(delivery);
         return delivery.getDeliveryId();

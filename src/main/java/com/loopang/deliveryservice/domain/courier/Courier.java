@@ -22,7 +22,7 @@ public class Courier {
     private int deliveryTurn;
 
     @Enumerated(EnumType.STRING)
-    private DeliveryChargeType chargeType;
+    private CourierType chargeType;
 
     public void assignCourier(UUID courierId) {
         if (this.courierId != null) throw new IllegalStateException("이미 담당자 있음");
@@ -33,7 +33,7 @@ public class Courier {
 //        this.sequence = sequence;
 //    }
 
-    public enum DeliveryChargeType {
+    public enum CourierType {
         COMPANY, HUB
     }
 

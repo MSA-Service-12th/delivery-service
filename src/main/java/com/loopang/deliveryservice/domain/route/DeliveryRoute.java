@@ -1,8 +1,8 @@
 package com.loopang.deliveryservice.domain.route;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
+import com.loopang.deliveryservice.domain.courier.Courier;
+import com.loopang.deliveryservice.domain.delivery.DeliveryStatus;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -16,20 +16,61 @@ public class DeliveryRoute {
 
     @Id
     @GeneratedValue
-    private UUID id;
+    private UUID deliveryRouteId;
 
     private UUID deliveryId;
 
-    private String fromLocation;
-    private String toLocation;
+    private String fromLocationId;
 
-    private int sequence;
+    private String toLocationId;
+
+    private String sequence;
 
 
+    @Enumerated(EnumType.STRING)
+    private DeliveryRelation deliveryRelation;
+
+
+    @Enumerated(EnumType.STRING)
+    private DeliveryStatus status;
+
+    private String expectedDistance;
+
+    private String expectedTime;
+
+    private String realDistance;
+
+    private String realTime;
+
+    private UUID courierId;
+
+    private String courierName;
+
+    @Enumerated(EnumType.STRING)
+    private CourierType chargeType;
+
+    public enum CourierType {
+        COMPANY, HUB
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+    public enum DeliveryRelation {
+        Inter_Hub_Transfer, Hub_To_Company_Transfer
+    }
 
     public void update(String from, String to) {
-        this.fromLocation = from;
-        this.toLocation = to;
+        this.fromLocationId = from;
+        this.toLocationId = to;
     }
 
 

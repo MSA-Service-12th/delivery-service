@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequiredArgsConstructor
@@ -17,7 +18,7 @@ public class DeliveryController {
 
     //배송생성
     @PostMapping
-    public Long create(@RequestParam Long orderId) {
+    public UUID create(@RequestParam UUID orderId) {
         return deliveryService.createDelivery(orderId);
     }
     //배송 단건 조회
