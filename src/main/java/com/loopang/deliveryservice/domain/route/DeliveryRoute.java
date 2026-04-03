@@ -1,5 +1,6 @@
 package com.loopang.deliveryservice.domain.route;
 
+import com.loopang.deliveryservice.domain.common.BaseUserEntity;
 import com.loopang.deliveryservice.domain.courier.Courier;
 import com.loopang.deliveryservice.domain.delivery.DeliveryStatus;
 import jakarta.persistence.*;
@@ -12,7 +13,7 @@ import java.util.UUID;
 @Entity
 @Getter
 @NoArgsConstructor
-public class DeliveryRoute {
+public class DeliveryRoute extends BaseUserEntity {
 
     @Id
     @GeneratedValue
@@ -73,24 +74,6 @@ public class DeliveryRoute {
         this.toLocationId = to;
     }
 
-
-    //@Column(name = "created_at", nullable = false)
-    private LocalDateTime createdAt;
-
-    //@Column(name = "created_by", length = 100, nullable = false)
-    private String createdBy;
-
-    //@Column(name = "updated_at")
-    private LocalDateTime updatedAt;
-
-    //@Column(name = "updated_by", length = 100)
-    private String updatedBy;
-
-    //@Column(name = "deleted_at")
-    private LocalDateTime deletedAt;
-
-    //@Column(name = "deleted_by", length = 100)
-    private String deletedBy;
 
     //생성
 

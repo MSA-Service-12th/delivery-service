@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.UUID;
 
 @Repository
 @RequiredArgsConstructor
@@ -14,14 +15,14 @@ public class DeliveryRepositoryImpl implements DeliveryRepository {
     private final JpaDeliveryRepository jpaRepository;
 
     @Override
-    public Delivery findById(Long id) {
-        return jpaRepository.findById(id)
+    public Delivery findById(UUID deliveryId) {
+        return jpaRepository.findByIdAndDeletedAtIsNull(deliveryId)
                 .orElseThrow(() -> new IllegalArgumentException("배송 없음"));
     }
 
     @Override
     public List<Delivery> findAll() {
-        return jpaRepository.findAllByDeletedFalse();
+        return jpaRepository.findAll();
     }
 
     @Override

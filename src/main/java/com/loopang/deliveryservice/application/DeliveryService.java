@@ -3,6 +3,8 @@ package com.loopang.deliveryservice.application;
 import com.loopang.deliveryservice.domain.delivery.Delivery;
 import com.loopang.deliveryservice.domain.delivery.DeliveryRepository;
 import com.loopang.deliveryservice.domain.delivery.DeliveryStatus;
+import com.loopang.deliveryservice.presentation.dto.DeliveryRequestDto;
+import com.loopang.deliveryservice.presentation.dto.DeliveryResponseDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,19 +27,22 @@ public class DeliveryService {
     }
 
     // 단건 조회
-    public Delivery getDelivery(Long id) {
-        return deliveryRepository.findById(id);
+    public DeliveryResponseDto getDelivery(UUID deliveryId) {
+
+        Delivery delivery = deliveryRepository.findById(deliveryId);
+
+        return DeliveryResponseDto.from(delivery);
     }
 
     // 목록 조회
-    public List<Delivery> getDeliveries() {
+    public List<DeliveryRequestDto> getDeliveries() {
         return deliveryRepository.findAll();
     }
 
     // 상태 변경
-    public void changeStatus(Long id, DeliveryStatus status) {
-        Delivery delivery = deliveryRepository.findById(id);
-        delivery.changeStatus(status);
+    public void changeStatus(UUID deliveryId, DeliveryStatus newStatus) {
+        Delivery delivery = deliveryRepository.findById(deliveryId);
+        delivery.changeStatus(newStatus);
     }
 
     // 삭제

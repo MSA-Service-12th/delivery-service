@@ -3,6 +3,8 @@ package com.loopang.deliveryservice.presentation;
 import com.loopang.deliveryservice.application.DeliveryService;
 import com.loopang.deliveryservice.domain.delivery.Delivery;
 import com.loopang.deliveryservice.domain.delivery.DeliveryStatus;
+import com.loopang.deliveryservice.presentation.dto.DeliveryRequestDto;
+import com.loopang.deliveryservice.presentation.dto.DeliveryResponseDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -22,20 +24,22 @@ public class DeliveryController {
         return deliveryService.createDelivery(orderId);
     }
     //배송 단건 조회
-    @GetMapping("/{id}")
-    public Delivery get(@PathVariable Long id) {
-        return deliveryService.getDelivery(id);
+    @GetMapping("/{deliveryId}")
+    public DeliveryResponseDto get(@PathVariable UUID deliveryId) {
+        return deliveryService.getDelivery(deliveryId);
     }
+
     //배송 목록 조회
     @GetMapping
-    public List<Delivery> list() {
+    public List<DeliveryRequestDto> list() {
         return deliveryService.getDeliveries();
     }
+
     //배송 상태 변경
-    @PatchMapping("/{id}/status")
-    public void changeStatus(@PathVariable Long id,
+    @PatchMapping("/{deliveryId}/status")
+    public void changeStatus(@PathVariable UUID deliveryId,
                              @RequestParam DeliveryStatus status) {
-        deliveryService.changeStatus(id, status);
+        deliveryService.changeStatus(deliveryId, status);
     }
 
     //배송 삭제

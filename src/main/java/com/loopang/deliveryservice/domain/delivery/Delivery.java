@@ -1,5 +1,6 @@
 package com.loopang.deliveryservice.domain.delivery;
 
+import com.loopang.deliveryservice.domain.common.BaseUserEntity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -10,7 +11,7 @@ import java.util.UUID;
 @Entity
 @Getter
 @NoArgsConstructor
-public class Delivery {
+public class Delivery extends BaseUserEntity {
 
     @Id
     @GeneratedValue
@@ -19,8 +20,6 @@ public class Delivery {
     private UUID orderId;
 
     private UUID courierId;
-
-//    private Integer sequence;
 
     @Enumerated(EnumType.STRING)
     private DeliveryStatus status;
@@ -64,9 +63,11 @@ public class Delivery {
 //        this.sequence = sequence;
 //    }
 
-    public void changeStatus(DeliveryStatus status) {
-        this.status = status;
+    public void changeStatus(DeliveryStatus newStatus) {
+        if (!this.status.canChangeTo(newStatus)) {
+            throw new IllegalStateException("잘못된 상태 변경");
+        }
+        this.status = newStatus;
     }
-
 
 }

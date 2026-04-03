@@ -15,4 +15,14 @@ public enum DeliveryStatus {
     CANCELLED("배송 취소");
 
     private final String description;
+
+    public boolean canChangeTo(DeliveryStatus target) {
+        return switch (this) {
+            case WAITING_AT_HUB -> target == IN_TRANSIT_TO_HUB || target == CANCELLED;
+            case IN_TRANSIT_TO_HUB -> target == ARRIVED_AT_DEST_HUB;
+            case ARRIVED_AT_DEST_HUB -> target == IN_TRANSIT_TO_COMPANY;
+            case IN_TRANSIT_TO_COMPANY -> target == DELIVERED;
+            default -> false;
+        };
+    }
 }
