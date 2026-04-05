@@ -54,25 +54,32 @@ public class DeliveryRoute extends BaseUserEntity {
         COMPANY, HUB
     }
 
-
-
-
-
-
-
-
-
-
-
-
     public enum DeliveryRelation {
         Inter_Hub_Transfer, Hub_To_Company_Transfer
     }
-
-    public void update(String from, String to) {
-        this.fromLocationId = from;
-        this.toLocationId = to;
+    public static Product create(
+            Store store,
+            String name,
+            String description,
+            Integer price,
+            String createdBy
+    ) {
+        Product product = new Product();
+        product.store = store;
+        product.name = name;
+        product.description = description;
+        product.price = price;
+        product.isHidden = false;
+        product.createdAt = LocalDateTime.now();
+        product.createdBy = createdBy;
+        return product;
     }
+
+
+//    public void update(String from, String to) {
+//        this.fromLocationId = from;
+//        this.toLocationId = to;
+//    }
 
 
     //생성
@@ -80,8 +87,8 @@ public class DeliveryRoute extends BaseUserEntity {
     //수정
 
     //  삭제 (Soft Delete)
-    public void delete(String deletedBy) {
-        this.deletedAt = LocalDateTime.now();
-        this.deletedBy = deletedBy;
-    }
+//    public void delete(String deletedBy) {
+//        this.deletedAt = LocalDateTime.now();
+//        this.deletedBy = deletedBy;
+//    }
 }

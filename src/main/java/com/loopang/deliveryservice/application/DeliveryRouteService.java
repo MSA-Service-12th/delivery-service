@@ -2,6 +2,7 @@ package com.loopang.deliveryservice.application;
 
 import com.loopang.deliveryservice.domain.route.DeliveryRoute;
 import com.loopang.deliveryservice.domain.route.DeliveryRouteRepository;
+import com.loopang.deliveryservice.presentation.dto.RouteRequestDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,8 +17,23 @@ public class DeliveryRouteService {
     private final DeliveryRouteRepository routeRepository;
 
     // 경로 생성
-    public Long createRoute(Long deliveryId, String from, String to, int seq) {
-        DeliveryRoute route = new DeliveryRoute(deliveryId, from, to, seq);
+    public UUID createRoute(RouteRequestDto request) {
+
+        DeliveryRoute route = DeliveryRouteRepository.findById(request.getDeliveryId())
+                .orElseThrow(() -> {
+                    return new CustomException(ErrorCode.DELIVERY_NOT_FOUND);
+                });
+
+        DeliveryRoute route = DeliveryRoute.create(
+                request.get(),
+                request.get(),
+                request.get(),
+        );
+
+        productRepository.save(product);
+
+
+        DeliveryRoute route = new DeliveryRoute(request);
         routeRepository.save(route);
         return route.getId();
     }

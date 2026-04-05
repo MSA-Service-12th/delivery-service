@@ -18,14 +18,16 @@ public class DeliveryController {
 
     private final DeliveryService deliveryService;
 
-    //배송생성
+    //배송생성(task: 이벤트)
     @PostMapping
     public UUID create(@RequestParam UUID orderId) {
+
         return deliveryService.createDelivery(orderId);
     }
     //배송 단건 조회
     @GetMapping("/{deliveryId}")
     public DeliveryResponseDto get(@PathVariable UUID deliveryId) {
+
         return deliveryService.getDelivery(deliveryId);
     }
 

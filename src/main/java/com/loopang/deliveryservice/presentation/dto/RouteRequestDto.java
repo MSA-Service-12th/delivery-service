@@ -7,6 +7,6 @@ import java.util.UUID;
 
 @Getter
 @NoArgsConstructor
-public class DeliveryRequestDto {
-    private UUID orderId;
+public class RouteRequestDto {
+    private UUID deliveryId;
 }
