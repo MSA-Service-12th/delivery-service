@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.UUID;
 
-@FeignClient(name = "user-service", fallbackFactory = CourierFeignClientFallbackFactory.class)
+@FeignClient(name = "user-service", contextId = "courierFeignClient", fallbackFactory = CourierFeignClientFallbackFactory.class)
 public interface CourierFeignClient {
 
 	@GetMapping("/internal/couriers")

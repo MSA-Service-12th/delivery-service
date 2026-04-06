@@ -3,7 +3,7 @@ package com.loopang.deliveryservice.domain.service.dto;
 import java.util.UUID;
 
 public record CourierData(
-	UUID id,
+	UUID courierId,
 	UUID userId,
 	String userName,
 	String email,
