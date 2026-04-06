@@ -1,5 +1,8 @@
 package com.loopang.deliveryservice.domain.event.payload;
 
+import com.loopang.deliveryservice.domain.vo.delivery.Destination;
+import com.loopang.deliveryservice.domain.vo.delivery.Origin;
+
 import java.util.UUID;
 
 // 주문 승인 완료 시 주문 -> 배송 방향으로 이벤트 발송
@@ -13,7 +16,20 @@ public record OrderAcceptedPayload(
 		String receiverName,
 		String receiverAddress,
 		String receiverSlackId,
-		UUID hubChargeId	// 허브관리자 ID
+		UUID hubManagerId	// 허브관리자 ID
 ) {
+	public Origin origin() {
+		return Origin.of(supplierHubId, supplierHubAddress);
+	}
 
+	public Destination destination() {
+		return Destination.of(
+				receiverHubId,
+				receiverHubAddress,
+				receiverId,
+				receiverName,
+				receiverAddress,
+				receiverSlackId
+		);
+	}
 }
