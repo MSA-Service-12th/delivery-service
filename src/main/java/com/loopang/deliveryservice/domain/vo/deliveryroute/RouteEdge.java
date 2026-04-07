@@ -1,5 +1,7 @@
 package com.loopang.deliveryservice.domain.vo.deliveryroute;
 
+import com.loopang.deliveryservice.domain.exception.DeliveryErrorCode;
+import com.loopang.deliveryservice.domain.exception.DeliveryException;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import lombok.AccessLevel;
@@ -31,6 +33,7 @@ public class RouteEdge {
 	private int expectedTime;
 
 	public static RouteEdge from(int sequence, UUID from, UUID to, double distance, int duration) {
+		validateRoute(sequence, from, to, distance, duration);
 		return new RouteEdge(
 				sequence,
 				from,
@@ -38,5 +41,17 @@ public class RouteEdge {
 				distance,
 				duration
 		);
+	}
+
+	private static void validateRoute(int sequence, UUID from, UUID to, double distance, int duration) {
+		if (sequence < 0) {
+			throw new DeliveryException(DeliveryErrorCode.DELIVERY_INVALID_ROUTE);
+		}
+		if (from == null || to == null) {
+			throw new DeliveryException(DeliveryErrorCode.DELIVERY_INVALID_ROUTE);
+		}
+		if (distance < 0 || duration < 0) {
+			throw new DeliveryException(DeliveryErrorCode.DELIVERY_INVALID_ROUTE);
+		}
 	}
 }
