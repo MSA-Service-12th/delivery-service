@@ -11,6 +11,7 @@ import com.loopang.deliveryservice.domain.vo.delivery.Destination;
 import com.loopang.deliveryservice.domain.vo.delivery.Origin;
 import com.loopang.deliveryservice.domain.vo.deliveryroute.DeliveryRelation;
 import com.loopang.deliveryservice.domain.vo.deliveryroute.DeliveryRouteStatus;
+import com.loopang.deliveryservice.domain.vo.deliveryroute.RouteEdge;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -32,6 +33,9 @@ public class Delivery extends BaseUserEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID deliveryId;
+
+    @Version
+    private Long version;
 
     @Column(name = "order_id", nullable = false)
     private UUID orderId;
@@ -79,6 +83,44 @@ public class Delivery extends BaseUserEntity {
                 .destination(payload.destination())
                 .hubManagerId(payload.hubManagerId())
                 .build();
+    }
+
+    public static Delivery createWithRoutes(OrderAcceptedPayload payload,
+                                          com.loopang.deliveryservice.domain.service.dto.RouteResultData routeResult,
+                                          com.loopang.deliveryservice.domain.vo.deliveryroute.CourierInfo firstCourier,
+                                          List<com.loopang.deliveryservice.domain.vo.deliveryroute.CourierInfo> hubCouriers,
+                                          com.loopang.deliveryservice.domain.vo.deliveryroute.CourierInfo lastCourier) {
+        Delivery delivery = Delivery.from(payload);
+        delivery.updateCurrentCourier(firstCourier.getCourierId(), CourierType.COMPANY);
+
+        int seq = 1;
+
+        // 1. First Segment: 업체 -> 출발허브 (TO_HUB)
+        RouteEdge edge1 = RouteEdge.from(seq++, payload.supplierId(), payload.supplierHubId(), 0, 0);
+        DeliveryRoute firstRoute = DeliveryRoute.create(edge1);
+        firstRoute.updateRelation(DeliveryRelation.TO_HUB);
+        firstRoute.assignCourier(firstCourier);
+        delivery.addDeliveryRoute(firstRoute);
+
+        // 2. Hub Transit Segments: 허브 -> 허브 (HUB_TO_HUB)
+        List<com.loopang.deliveryservice.domain.service.dto.RouteEdgeData> edges = routeResult.routeEdges();
+        for (int i = 0; i < edges.size(); i++) {
+            com.loopang.deliveryservice.domain.service.dto.RouteEdgeData edgeData = edges.get(i);
+            RouteEdge hubEdge = RouteEdge.from(seq++, edgeData.fromHubId(), edgeData.toHubId(), edgeData.distance(), edgeData.duration().intValue());
+            DeliveryRoute hubRoute = DeliveryRoute.create(hubEdge);
+            hubRoute.updateRelation(DeliveryRelation.HUB_TO_HUB);
+            hubRoute.assignCourier(hubCouriers.get(i));
+            delivery.addDeliveryRoute(hubRoute);
+        }
+
+        // 3. Last Segment: 도착허브 -> 수령업체 (FROM_HUB)
+        RouteEdge edge3 = RouteEdge.from(seq++, payload.receiverHubId(), payload.receiverId(), 0, 0);
+        DeliveryRoute lastRoute = DeliveryRoute.create(edge3);
+        lastRoute.updateRelation(DeliveryRelation.FROM_HUB);
+        lastRoute.assignCourier(lastCourier);
+        delivery.addDeliveryRoute(lastRoute);
+
+        return delivery;
     }
 
     // 배송담당자 지정

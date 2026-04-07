@@ -25,6 +25,9 @@ public class DeliveryRoute extends BaseUserEntity {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID deliveryRouteId;
 
+    @Version
+    private Long version;
+
     // 배송 엔티티
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "delivery_id")
