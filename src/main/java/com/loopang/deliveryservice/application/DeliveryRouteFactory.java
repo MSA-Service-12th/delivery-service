@@ -11,11 +11,8 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 
-/**
- * 배송 엔티티 조립기 (Assembler)
- * 여러 도메인 객체와 외부 데이터를 조합하여 복잡한 Delivery 애그리거트를 생성합니다.
- * 응용 계층에 위치하여 향후 외부 API 호출 로직 등을 유연하게 수용할 수 있습니다.
- */
+// 여러 도메인 객체와 외부 데이터를 조합하여 복잡한 Delivery 애그리거트를 생성
+// 응용 계층에 위치하여 향후 외부 API 호출 로직 등을 유연하게 수용 가능
 @Component
 public class DeliveryRouteFactory {
 
