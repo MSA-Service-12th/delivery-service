@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import java.util.List;
 import java.util.UUID;
 
-@FeignClient(name = "user-service", contextId = "courierFeignClient", fallbackFactory = UserFeignClientFallbackFactory.class)
+@FeignClient(name = "user-service", contextId = "userFeignClient", fallbackFactory = UserFeignClientFallbackFactory.class)
 public interface UserFeignClient {
 
 	@GetMapping("/internal/users/{userId}")
