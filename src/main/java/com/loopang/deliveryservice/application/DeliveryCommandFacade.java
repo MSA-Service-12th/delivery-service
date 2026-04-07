@@ -3,11 +3,14 @@ package com.loopang.deliveryservice.application;
 import com.loopang.deliveryservice.domain.entity.Delivery;
 import com.loopang.deliveryservice.domain.event.DeliveryEvents;
 import com.loopang.deliveryservice.domain.event.payload.OrderAcceptedPayload;
+import com.loopang.deliveryservice.domain.exception.DeliveryErrorCode;
+import com.loopang.deliveryservice.domain.exception.DeliveryException;
 import com.loopang.deliveryservice.domain.service.CourierProvider;
 import com.loopang.deliveryservice.domain.service.RouteProvider;
 import com.loopang.deliveryservice.domain.service.dto.RouteResultData;
 import com.loopang.deliveryservice.domain.service.dto.request.RouteRequestData;
 import com.loopang.deliveryservice.domain.vo.CourierType;
+import com.loopang.deliveryservice.domain.vo.UserType;
 import com.loopang.deliveryservice.domain.vo.delivery.DeliveryStatus;
 import com.loopang.deliveryservice.domain.vo.deliveryroute.CourierInfo;
 import lombok.RequiredArgsConstructor;
@@ -52,16 +55,26 @@ public class DeliveryCommandFacade implements DeliveryCommandService {
 	}
 
 	@Override
-	public void deleteDelivery(UUID deliveryId) {
+	public void deleteDelivery(UUID deliveryId, String userId, String userRole) {
+		Delivery delivery = deliveryCommandCore.findById(deliveryId);
+
+		// 마스터 관리자 및 해당 허브 관리자만 삭제 가능
+		validateModification(delivery, userId, userRole);
+
 		deliveryCommandCore.deleteDelivery(deliveryId);
 	}
 
 	@Override
-	public void updateDeliveryStatus(UUID deliveryId, DeliveryStatus status) {
+	public void updateDeliveryStatus(UUID deliveryId, DeliveryStatus status, String userId, String userRole) {
+		Delivery delivery = deliveryCommandCore.findById(deliveryId);
+
+		// 마스터 관리자, 해당 허브 관리자, 그리고 해당 배송 담당자만 현재 배송상태 변경 가능
+		validateModification(delivery, userId, userRole);
+
 		// 1. Core를 통해 상태 변경 (트랜잭션)
 		Delivery updatedDelivery = deliveryCommandCore.updateStatus(deliveryId, status);
 
-		// 2. 상태 변경 이벤트 발행(배송 완료 시 주문 도메인의 주문상태도 주문완료로 변경)
+		// 2. 상태 변경 이벤트 발행
 		if (updatedDelivery.getStatus() == DeliveryStatus.COMPLETED) {
 			deliveryEvents.statusUpdated(updatedDelivery);
 		}
@@ -71,5 +84,23 @@ public class DeliveryCommandFacade implements DeliveryCommandService {
 	public void handleOrderRollback(OrderAcceptedPayload payload, boolean force) {
 		// 주문 기반으로 배송을 찾아 취소 처리 (보상 트랜잭션)
 		deliveryCommandCore.cancelByOrderId(payload.orderId(), force);
+	}
+
+	private void validateModification(Delivery delivery, String userId, String userRole) {
+		UserType type = UserType.from(userRole);
+		if (type == UserType.MASTER) return;
+
+		UUID userUuid = UUID.fromString(userId);
+		
+		// 해당 허브 관리자인지 확인
+		if (type == UserType.HUB && userUuid.equals(delivery.getHubManagerId())) {
+			return;
+		}
+		
+		// 해당 배송 담당자인지 확인
+		if (type == UserType.DELIVERY
+				&& (userUuid.equals(delivery.getHubCourierId()) || userUuid.equals(delivery.getCompanyCourierId()))) return;
+
+		throw new DeliveryException(DeliveryErrorCode.DELIVERY_FORBIDDEN);
 	}
 }

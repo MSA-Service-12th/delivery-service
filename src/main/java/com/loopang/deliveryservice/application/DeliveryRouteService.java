@@ -7,6 +7,7 @@ import com.loopang.deliveryservice.domain.exception.DeliveryErrorCode;
 import com.loopang.deliveryservice.domain.exception.DeliveryException;
 import com.loopang.deliveryservice.domain.repository.DeliveryRouteRepository;
 import com.loopang.deliveryservice.domain.vo.CourierType;
+import com.loopang.deliveryservice.domain.vo.UserType;
 import com.loopang.deliveryservice.domain.vo.delivery.DeliveryStatus;
 import com.loopang.deliveryservice.domain.vo.deliveryroute.DeliveryRelation;
 import com.loopang.deliveryservice.domain.vo.deliveryroute.DeliveryRouteStatus;
@@ -26,34 +27,55 @@ public class DeliveryRouteService {
 
     /**
      * 특정 배송 구간의 상태를 변경하고, 그에 따른 전체 배송 상태 동기화 및 담당자 인계를 수행합니다.
-     * (기존 Delivery 엔티티에 과중되었던 오케스트레이션 로직을 애플리케이션 계층으로 분리)
      */
-    public void updateRouteStatus(UUID routeId, DeliveryRouteStatus nextStatus) {
+    public void updateRouteStatus(UUID routeId, DeliveryRouteStatus nextStatus, String userId, String userRole) {
         // 1. 배송 구간 및 애그리거트 루트(Delivery) 조회
         DeliveryRoute route = deliveryRouteRepository.findById(routeId)
                 .orElseThrow(() -> new DeliveryException(DeliveryErrorCode.DELIVERY_ROUTE_NOT_FOUND));
         Delivery delivery = route.getDelivery();
 
-        // 2. [순차 진행 검증] 이전 구간이 완료되었는지 확인
+        // 2. 권한 검증
+        validateAccess(route, userId, userRole);
+
+        // 3. [순차 진행 검증] 이전 구간이 완료되었는지 확인
         if (requiresOrderedProgress(nextStatus) && hasUnfinishedPredecessor(delivery, route)) {
             throw new DeliveryException(DeliveryErrorCode.DELIVERY_PREDECESSOR_NOT_COMPLETED);
         }
 
-        // 3. 해당 구간의 상태 변경 수행 (Entity 내부 상태 전이 규칙 적용)
+        // 4. 해당 구간의 상태 변경 수행 (Entity 내부 상태 전이 규칙 적용)
         applyRouteStatusChange(route, nextStatus);
 
-        // 4. 전체 배송 상태(DeliveryStatus) 동기화
+        // 5. 전체 배송 상태(DeliveryStatus) 동기화
         syncOverallDeliveryStatus(delivery, route, nextStatus);
 
-        // 5. 구간 완료 시 다음 구간 담당자로 인계
+        // 6. 구간 완료 시 다음 구간 담당자로 인계
         if (nextStatus == DeliveryRouteStatus.COMPLETED) {
             handoverToNextCourier(delivery, route.getRouteEdge().getSequence());
         }
 
-        // 6. 배송이 최종 완료된 경우 주문 도메인으로 알림 발행
+        // 7. 배송이 최종 완료된 경우 주문 도메인으로 알림 발행
         if (delivery.getStatus() == DeliveryStatus.COMPLETED) {
             deliveryEvents.statusUpdated(delivery);
         }
+    }
+
+    private void validateAccess(DeliveryRoute route, String userId, String userRole) {
+        UserType type = UserType.from(userRole);
+        
+        // 마스터 관리자와 허브 관리자는 모든 구간 상태 변경 권한을 가짐
+        if (type == UserType.MASTER || type == UserType.HUB) {
+            return;
+        }
+
+        // 배송 담당자는 본인에게 할당된 구간만 변경 가능
+        if (type == UserType.DELIVERY) {
+            UUID userUuid = UUID.fromString(userId);
+            if (route.getCourierInfo() != null && userUuid.equals(route.getCourierInfo().getCourierId())) {
+                return;
+            }
+        }
+
+        throw new DeliveryException(DeliveryErrorCode.DELIVERY_ACCESS_DENIED);
     }
 
     private boolean requiresOrderedProgress(DeliveryRouteStatus nextStatus) {

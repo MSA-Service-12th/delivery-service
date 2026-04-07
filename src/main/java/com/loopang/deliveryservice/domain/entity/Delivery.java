@@ -112,7 +112,9 @@ public class Delivery extends BaseUserEntity {
         // 전체 취소 시 모든 하위 구간도 함께 취소 처리 (이미 완료된 것은 제외)
         if (this.deliveryRoutes != null) {
             this.deliveryRoutes.stream()
-                .filter(route -> route.getStatus() != DeliveryRouteStatus.COMPLETED && route.getStatus() != DeliveryRouteStatus.CANCELLED)
+                .filter(route ->
+                        route.getStatus() != DeliveryRouteStatus.COMPLETED
+                        && route.getStatus() != DeliveryRouteStatus.CANCELLED)
                 .forEach(DeliveryRoute::cancel);
         }
     }

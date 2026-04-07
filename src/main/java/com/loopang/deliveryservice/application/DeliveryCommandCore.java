@@ -24,10 +24,19 @@ public class DeliveryCommandCore {
     private final DeliveryRepository deliveryRepository;
     private final DeliveryRouteFactory deliveryRouteFactory;
 
+    @Transactional(readOnly = true)
+    public Delivery findById(UUID deliveryId) {
+        return deliveryRepository.findById(deliveryId)
+                .orElseThrow(() -> new DeliveryException(DeliveryErrorCode.DELIVERY_NOT_FOUND));
+    }
+
     // 배송 및 동적 계산된 경로 통합 생성 (트랜잭션 보장)
     @Transactional
-    public Delivery createWithCalculatedRoutes(OrderAcceptedPayload payload, RouteResultData routeResult,
-                                              CourierInfo firstCourier, List<CourierInfo> hubCouriers, CourierInfo lastCourier) {
+    public Delivery createWithCalculatedRoutes(OrderAcceptedPayload payload, 
+                                              RouteResultData routeResult,
+                                              CourierInfo firstCourier, 
+                                              List<CourierInfo> hubCouriers, 
+                                              CourierInfo lastCourier) {
         
         // 1. 멱등성 가드: 이미 해당 주문에 대한 배송이 존재하는지 확인
         Optional<Delivery> existingDelivery = deliveryRepository.findByOrderId(payload.orderId());
