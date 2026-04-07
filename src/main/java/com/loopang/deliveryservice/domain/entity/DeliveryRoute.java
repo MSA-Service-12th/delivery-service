@@ -33,7 +33,7 @@ public class DeliveryRoute extends BaseUserEntity {
 
     // 배송 엔티티
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "delivery_id")
+    @JoinColumn(name = "delivery_id", nullable = false)
     private Delivery delivery;
 
     @Embedded
