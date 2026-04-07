@@ -20,22 +20,22 @@ public class UserFeignClientFallbackFactory implements FallbackFactory<UserFeign
 		return new UserFeignClient() {
 			@Override
 			public CommonResponse<UserData> getUserData(UUID userId) {
-				log.error("[User service Fallback] User ID: {} 조회 중 장애 발생, 사유: {}",
-						userId, cause.getMessage(), cause); // 발생위치 -> 파생위치를 알려줌 stackTrace
+				log.error("[User Service Fallback] 사용자 단건 조회 중 장애 발생 - User ID: {}, 사유: {}",
+						userId, cause.getMessage(), cause);
 				throw new DeliveryException(
 						HttpStatus.SERVICE_UNAVAILABLE,
-						"User Service API 요청 처리 실패, 잠시 후 다시 시도해주세요.",
+						"사용자 서비스(user-service) 단건 조회에 실패했습니다. 잠시 후 다시 시도해 주세요.",
 						"user-service"
 				);
 			}
 
 			@Override
 			public CommonResponse<List<UserData>> getUserDataList(String userType, UUID hubId) {
-				log.error("[User service Fallback] Hub ID: {} 조회 중 장애 발생, 사유: {}",
-						hubId, cause.getMessage(), cause); // 발생위치 -> 파생위치를 알려줌 stackTrace
+				log.error("[User Service Fallback] 사용자 목록 조회 중 장애 발생 - Type: {}, Hub ID: {}, 사유: {}",
+						userType, hubId, cause.getMessage(), cause);
 				throw new DeliveryException(
 						HttpStatus.SERVICE_UNAVAILABLE,
-						"User Service API 요청 처리 실패, 잠시 후 다시 시도해주세요.",
+						"사용자 서비스(user-service) 목록 조회에 실패했습니다. 잠시 후 다시 시도해 주세요.",
 						"user-service"
 				);
 			}

@@ -8,6 +8,7 @@ import org.springframework.cloud.openfeign.FallbackFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.UUID;
 
 @Slf4j
@@ -18,23 +19,23 @@ public class CourierFeignClientFallbackFactory implements FallbackFactory<Courie
 	public CourierFeignClient create(Throwable cause) {
 		return new CourierFeignClient() {
 			@Override
-			public CommonResponse<CourierData> getCourier(UUID hubId, String courierType) {
-				log.error("[Courier service Fallback] Hub ID: {} 조회 중 장애 발생, 사유: {}",
-						hubId, cause.getMessage(), cause); // 발생위치 -> 파생위치를 알려줌 stackTrace
+			public CommonResponse<List<CourierData>> getCouriers(UUID hubId, String courierType) {
+				log.error("[Courier Service Fallback] 배송담당자 목록 조회 중 장애 발생 - Hub ID: {}, Type: {}, 사유: {}",
+						hubId, courierType, cause.getMessage(), cause);
 				throw new DeliveryException(
 						HttpStatus.SERVICE_UNAVAILABLE,
-						"Courier Service API 요청 처리 실패, 잠시 후 다시 시도해주세요.",
+						"배송담당자 서비스(user-service) 목록 조회에 실패했습니다. 잠시 후 다시 시도해 주세요.",
 						"user-service"
 				);
 			}
 
 			@Override
 			public CommonResponse<CourierData> getCourier(UUID courierId) {
-				log.error("[Courier service Fallback] Courier ID: {} 조회 중 장애 발생, 사유: {}",
-						courierId, cause.getMessage(), cause); // 발생위치 -> 파생위치를 알려줌 stackTrace
+				log.error("[Courier Service Fallback] 배송담당자 단건 조회 중 장애 발생 - Courier ID: {}, 사유: {}",
+						courierId, cause.getMessage(), cause);
 				throw new DeliveryException(
 						HttpStatus.SERVICE_UNAVAILABLE,
-						"Courier Service API 요청 처리 실패, 잠시 후 다시 시도해주세요.",
+						"배송담당자 서비스(user-service) 단건 조회에 실패했습니다. 잠시 후 다시 시도해 주세요.",
 						"user-service"
 				);
 			}
