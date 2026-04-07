@@ -157,6 +157,12 @@ public class Delivery extends BaseUserEntity {
     public void cancel() {
         validateTransition(DeliveryStatus.CANCELLED);
         this.status = DeliveryStatus.CANCELLED;
+        // 전체 취소 시 모든 하위 구간도 함께 취소 처리 (이미 완료된 것은 제외)
+        if (this.deliveryRoutes != null) {
+            this.deliveryRoutes.stream()
+                .filter(route -> route.getStatus() != DeliveryRouteStatus.COMPLETED && route.getStatus() != DeliveryRouteStatus.CANCELLED)
+                .forEach(DeliveryRoute::cancel);
+        }
     }
 
     private void validateTransition(DeliveryStatus next) {
@@ -179,11 +185,7 @@ public class Delivery extends BaseUserEntity {
         switch (nextStatus) {
             case ON_DELIVERY -> this.onDelivery();
             case COMPLETED -> this.complete();
-            case CANCELLED -> {
-                this.cancel();
-                // 전체 취소 시 모든 하위 구간도 함께 취소
-                this.deliveryRoutes.forEach(DeliveryRoute::cancel);
-            }
+            case CANCELLED -> this.cancel();
             default -> throw new DeliveryException(DeliveryErrorCode.DELIVERY_INVALID_STATUS_TRANSITION);
         }
     }
