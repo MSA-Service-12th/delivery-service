@@ -5,10 +5,12 @@ import com.loopang.deliveryservice.domain.event.payload.OrderAcceptedPayload;
 import com.loopang.deliveryservice.domain.exception.DeliveryErrorCode;
 import com.loopang.deliveryservice.domain.exception.DeliveryException;
 import com.loopang.deliveryservice.domain.service.dto.CourierData;
+import com.loopang.deliveryservice.domain.service.dto.RouteResultData;
 import com.loopang.deliveryservice.domain.vo.CourierType;
 import com.loopang.deliveryservice.domain.vo.delivery.DeliveryStatus;
 import com.loopang.deliveryservice.domain.vo.delivery.Destination;
 import com.loopang.deliveryservice.domain.vo.delivery.Origin;
+import com.loopang.deliveryservice.domain.vo.deliveryroute.CourierInfo;
 import com.loopang.deliveryservice.domain.vo.deliveryroute.DeliveryRelation;
 import com.loopang.deliveryservice.domain.vo.deliveryroute.DeliveryRouteStatus;
 import com.loopang.deliveryservice.domain.vo.deliveryroute.RouteEdge;
@@ -37,7 +39,7 @@ public class Delivery extends BaseUserEntity {
     @Version
     private Long version;
 
-    @Column(name = "order_id", nullable = false)
+    @Column(name = "order_id", nullable = false, unique = true)
     private UUID orderId;
 
     @Column(name = "delivery_status", nullable = false)
@@ -85,11 +87,8 @@ public class Delivery extends BaseUserEntity {
                 .build();
     }
 
-    public static Delivery createWithRoutes(OrderAcceptedPayload payload,
-                                          com.loopang.deliveryservice.domain.service.dto.RouteResultData routeResult,
-                                          com.loopang.deliveryservice.domain.vo.deliveryroute.CourierInfo firstCourier,
-                                          List<com.loopang.deliveryservice.domain.vo.deliveryroute.CourierInfo> hubCouriers,
-                                          com.loopang.deliveryservice.domain.vo.deliveryroute.CourierInfo lastCourier) {
+    public static Delivery createWithRoutes(OrderAcceptedPayload payload, RouteResultData routeResult,
+                                          CourierInfo firstCourier, List<CourierInfo> hubCouriers, CourierInfo lastCourier) {
         Delivery delivery = Delivery.from(payload);
         delivery.updateCurrentCourier(firstCourier.getCourierId(), CourierType.COMPANY);
 

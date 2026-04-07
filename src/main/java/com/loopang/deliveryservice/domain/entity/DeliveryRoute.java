@@ -13,11 +13,14 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import org.hibernate.annotations.SQLRestriction;
+
 import java.util.UUID;
 
 @Table(name = "p_delivery_route")
 @Entity
 @Getter
+@SQLRestriction("deleted_at is null")
 @NoArgsConstructor
 public class DeliveryRoute extends BaseUserEntity {
 

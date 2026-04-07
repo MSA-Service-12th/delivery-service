@@ -61,8 +61,10 @@ public class DeliveryCommandFacade implements DeliveryCommandService {
 		// 1. Core를 통해 상태 변경 (트랜잭션)
 		Delivery updatedDelivery = deliveryCommandCore.updateStatus(deliveryId, status);
 
-		// 2. 상태 변경 이벤트 발행
-		deliveryEvents.statusUpdated(updatedDelivery);
+		// 2. 상태 변경 이벤트 발행(배송 완료 시 주문 도메인의 주문상태도 주문완료로 변경)
+		if (updatedDelivery.getStatus() == DeliveryStatus.COMPLETED) {
+			deliveryEvents.statusUpdated(updatedDelivery);
+		}
 	}
 
 	@Override
