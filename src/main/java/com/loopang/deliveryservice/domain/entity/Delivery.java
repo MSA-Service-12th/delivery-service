@@ -133,7 +133,7 @@ public class Delivery extends BaseUserEntity {
         nextRoute.updateDelivery(this);
     }
 
-    // [애그리거트 루트 기능] 특정 구간의 상태 변경 및 담당자 인계 제어
+    // [애그리거트 루트 기능] 특정 구간의 상태 변경 및 담당자 인계, 전체 배송 상태 제어
     public void updateRouteStatus(UUID routeId, DeliveryRouteStatus nextStatus) {
         DeliveryRoute targetRoute = this.deliveryRoutes.stream()
                 .filter(r -> r.getDeliveryRouteId().equals(routeId))
@@ -143,10 +143,39 @@ public class Delivery extends BaseUserEntity {
         // 1. 해당 구간의 상태 전이 수행
         applyStatusChange(targetRoute, nextStatus);
 
-        // 2. 구간 완료 시 다음 구간 담당자로 인계
+        // 2. 전체 배송 상태(DeliveryStatus) 동기화
+        syncOverallStatus(targetRoute, nextStatus);
+
+        // 3. 구간 완료 시 다음 구간 담당자로 인계
         if (nextStatus == DeliveryRouteStatus.COMPLETED) {
             handoverToNextCourier(targetRoute.getRouteEdge().getSequence());
         }
+    }
+
+    private void syncOverallStatus(DeliveryRoute route, DeliveryRouteStatus nextStatus) {
+        // 이동 시작 시 전체 상태를 '배송 중'으로 변경
+        if (this.status == DeliveryStatus.START_DELIVERY && 
+           (nextStatus == DeliveryRouteStatus.IN_TRANSIT_TO_HUB || nextStatus == DeliveryRouteStatus.IN_TRANSIT_TO_COMPANY)) {
+            this.onDelivery();
+        }
+
+        // 마지막 구간 완료 시 전체 상태를 '배송 완료'로 변경
+        if (nextStatus == DeliveryRouteStatus.COMPLETED && isLastRoute(route)) {
+            this.complete();
+        }
+
+        // 구간 취소 시 전체 상태를 '배송 취소'로 변경
+        if (nextStatus == DeliveryRouteStatus.CANCELLED) {
+            this.cancel();
+        }
+    }
+
+    private boolean isLastRoute(DeliveryRoute route) {
+        int maxSequence = this.deliveryRoutes.stream()
+                .mapToInt(r -> r.getRouteEdge().getSequence())
+                .max()
+                .orElse(0);
+        return route.getRouteEdge().getSequence() == maxSequence;
     }
 
     private void applyStatusChange(DeliveryRoute route, DeliveryRouteStatus nextStatus) {
