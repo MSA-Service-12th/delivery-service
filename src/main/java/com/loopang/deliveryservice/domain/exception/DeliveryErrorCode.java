@@ -13,7 +13,8 @@ public enum DeliveryErrorCode implements ErrorCodeSpec {
 	DELIVERY_INVALID_STATUS_TRANSITION("DELIVERY_006", HttpStatus.BAD_REQUEST, "배송 상태를 변경할 수 없습니다."),
 	DELIVERY_ALREADY_DELETED("DELIVERY_007", HttpStatus.BAD_REQUEST, "이미 삭제된 배송정보입니다."),
 	DELIVERY_INVALID_COURIER_TYPE("DELIVERY_008", HttpStatus.BAD_REQUEST, "유효하지 않은 배송관리자 타입입니다."),
-	DELIVERY_PREDECESSOR_NOT_COMPLETED("DELIVERY_009", HttpStatus.BAD_REQUEST, "이전 배송 구간이 완료되지 않았습니다.");
+	DELIVERY_PREDECESSOR_NOT_COMPLETED("DELIVERY_009", HttpStatus.BAD_REQUEST, "이전 배송 구간이 완료되지 않았습니다."),
+	DELIVERY_COURIER_NOT_FOUND("DELIVERY_010", HttpStatus.NOT_FOUND, "배치 가능한 배송담당자가 없습니다.");
 
 	private final String code;
 	private final HttpStatus status;

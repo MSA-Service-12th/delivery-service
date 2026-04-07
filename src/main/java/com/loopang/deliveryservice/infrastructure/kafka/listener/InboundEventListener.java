@@ -18,6 +18,9 @@ public interface InboundEventListener {
 	default <T> T extractPayload(String messagePayload, JsonUtil jsonUtil, Class<T> payloadClass) {
 		try {
 			OutboxEvent outboxEvent = jsonUtil.fromJson(messagePayload, OutboxEvent.class);
+			if (outboxEvent == null || outboxEvent.payload() == null) {
+				throw new IllegalArgumentException("Failed to extract payload: payload is missing");
+			}
 			String payloadJson = jsonUtil.toJson(outboxEvent.payload());
 			return jsonUtil.fromJson(payloadJson, payloadClass);
 		} catch (Exception e) {

@@ -1,5 +1,7 @@
 package com.loopang.deliveryservice.infrastructure;
 
+import com.loopang.deliveryservice.domain.exception.DeliveryErrorCode;
+import com.loopang.deliveryservice.domain.exception.DeliveryException;
 import com.loopang.deliveryservice.domain.service.CourierProvider;
 import com.loopang.deliveryservice.domain.service.dto.CourierData;
 import com.loopang.deliveryservice.domain.vo.CourierType;
@@ -26,7 +28,7 @@ public class CourierProviderImpl implements CourierProvider {
 		List<CourierData> candidates = courierFeignClient.getCouriers(hubId, type.name()).getData();
 
 		if (candidates == null || candidates.isEmpty()) {
-			throw new RuntimeException("해당 허브 및 타입에 가용한 배송담당자가 없습니다.");
+			throw new DeliveryException(DeliveryErrorCode.DELIVERY_COURIER_NOT_FOUND);
 		}
 
 		String key = hubId.toString() + ":" + type.name();
