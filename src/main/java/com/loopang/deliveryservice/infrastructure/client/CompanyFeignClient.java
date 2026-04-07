@@ -1,5 +1,6 @@
 package com.loopang.deliveryservice.infrastructure.client;
 
+import com.loopang.common.response.CommonResponse;
 import com.loopang.deliveryservice.domain.service.dto.CoordinateData;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -11,5 +12,5 @@ import java.util.UUID;
 public interface CompanyFeignClient {
 
 	@GetMapping("/api/companies/{companyId}")
-	CoordinateData getCoordinateData(@PathVariable("companyId") UUID companyId);
+	CommonResponse<CoordinateData> getCoordinateData(@PathVariable("companyId") UUID companyId);
 }
