@@ -3,17 +3,19 @@ package com.loopang.deliveryservice.domain.entity;
 import com.loopang.common.domain.BaseUserEntity;
 import com.loopang.deliveryservice.domain.exception.DeliveryErrorCode;
 import com.loopang.deliveryservice.domain.exception.DeliveryException;
-import com.loopang.deliveryservice.domain.vo.CourierType;
-import com.loopang.deliveryservice.domain.vo.delivery.DeliveryStatus;
 import com.loopang.deliveryservice.domain.vo.deliveryroute.CourierInfo;
 import com.loopang.deliveryservice.domain.vo.deliveryroute.DeliveryRelation;
 import com.loopang.deliveryservice.domain.vo.deliveryroute.DeliveryRouteStatus;
+import com.loopang.deliveryservice.domain.vo.deliveryroute.RouteEdge;
 import jakarta.persistence.*;
+import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.util.UUID;
 
+@Table(name = "p_delivery_route")
 @Entity
 @Getter
 @NoArgsConstructor
@@ -23,30 +25,13 @@ public class DeliveryRoute extends BaseUserEntity {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID deliveryRouteId;
 
-    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    // 배송 엔티티
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "delivery_id")
-    private Delivery deliveryId;
+    private Delivery delivery;
 
-    @Column(name = "sequence", nullable = false)
-    private Integer sequence;
-
-    @Column(name = "from_location_id", nullable = false)
-    private UUID fromLocationId;
-
-    @Column(name = "to_location_id", nullable = false)
-    private UUID toLocationId;
-
-    @Column(name = "expected_distance", nullable = false)
-    private double expectedDistance;    // 예상 거리(km 단위)
-
-    @Column(name = "expected_time", nullable = false)
-    private int expectedTime;        // 예상 시간(분 단위)
-
-    @Column(name = "real_distance", nullable = false)
-    private double realDistance;
-
-    @Column(name = "real_time", nullable = false)
-    private int realTime;
+    @Embedded
+    private RouteEdge routeEdge;
 
     @Embedded
     private CourierInfo courierInfo;
@@ -57,16 +42,50 @@ public class DeliveryRoute extends BaseUserEntity {
     @Enumerated(EnumType.STRING)
     private DeliveryRouteStatus status;
 
-    // 배송경로 예상 시간/예상 거리
-    public void updateExpected(int expectedTime, double expectedDistance) {
-        this.expectedTime = expectedTime;
-        this.expectedDistance = expectedDistance;
+    @Builder(access = AccessLevel.PRIVATE)
+    private DeliveryRoute(RouteEdge routeEdge) {
+        this.routeEdge = routeEdge;
+        this.status = DeliveryRouteStatus.WAITING_AT_HUB;
     }
 
-    // 배송경로 실제 시간/실제 거리
-    public void updateReal(int realTime, double realDistance) {
-        this.realTime = realTime;
-        this.realDistance = realDistance;
+    // 배송경로 생성
+    public static DeliveryRoute create(RouteEdge routeEdge) {
+        return DeliveryRoute.builder()
+                .routeEdge(routeEdge)
+                .build();
+    }
+
+    // 배송경로-배송 연관관계 동기화
+    public void updateDelivery(Delivery delivery) {
+        this.delivery = delivery;
+    }
+
+    // 배송경로 예상 시간/예상 거리 업데이트
+    public void updateExpected(int expectedTime, double expectedDistance) {
+        if (this.routeEdge == null) {
+            this.routeEdge = RouteEdge.from(0, null, null, expectedDistance, expectedTime);
+        } else {
+            this.routeEdge = RouteEdge.from(
+                    this.routeEdge.getSequence(),
+                    this.routeEdge.getFromLocationId(),
+                    this.routeEdge.getToLocationId(),
+                    expectedDistance,
+                    expectedTime
+            );
+        }
+    }
+
+    // 배송경로별 배송담당자 배정
+    public void assignCourier(CourierInfo courierInfo) {
+        this.courierInfo = courierInfo;
+    }
+
+    public void updateRelation(DeliveryRelation relation) {
+        this.deliveryRelation = relation;
+    }
+
+    public void updateStatus(DeliveryRouteStatus status) {
+        this.status = status;
     }
 
     // 배송경로 상태 전이
@@ -103,4 +122,5 @@ public class DeliveryRoute extends BaseUserEntity {
             throw new DeliveryException(DeliveryErrorCode.DELIVERY_INVALID_STATUS_TRANSITION);
         }
     }
+
 }
