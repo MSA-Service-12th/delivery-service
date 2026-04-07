@@ -27,7 +27,7 @@ public class CourierInfo {
 	private CourierType courierType;
 
 	public static CourierInfo of(CourierData courierData) {
-		CourierType courierType = CourierType.valueOf(courierData.deliveryChargeType());
+		CourierType courierType = CourierType.find(courierData.deliveryChargeType());
 
 		return new CourierInfo(courierData.courierId(), courierData.userName(), courierType);
 	}

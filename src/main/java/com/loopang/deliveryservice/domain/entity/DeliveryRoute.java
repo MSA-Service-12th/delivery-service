@@ -90,10 +90,6 @@ public class DeliveryRoute extends BaseUserEntity {
         this.deliveryRelation = relation;
     }
 
-    public void updateStatus(DeliveryRouteStatus status) {
-        this.status = status;
-    }
-
     // 배송경로 상태 전이
     public void transitToHub() {
         validateTransition(DeliveryRouteStatus.IN_TRANSIT_TO_HUB);

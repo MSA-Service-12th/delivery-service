@@ -1,5 +1,7 @@
 package com.loopang.deliveryservice.domain.service.dto;
 
+import com.loopang.deliveryservice.domain.vo.UserType;
+
 import java.util.UUID;
 
 public record UserData(
@@ -9,5 +11,5 @@ public record UserData(
 		String slackId,
 		UUID hubId,
 		String hubName,
-		String role
+		UserType role
 ) { }
