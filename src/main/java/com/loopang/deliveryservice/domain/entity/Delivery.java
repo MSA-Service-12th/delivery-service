@@ -165,6 +165,14 @@ public class Delivery extends BaseUserEntity {
         }
     }
 
+    // 강제 취소 (상태 전이 검증 생략 및 모든 구간 강제 취소)
+    public void forceCancel() {
+        this.status = DeliveryStatus.CANCELLED;
+        if (this.deliveryRoutes != null) {
+            this.deliveryRoutes.forEach(DeliveryRoute::forceCancel);
+        }
+    }
+
     private void validateTransition(DeliveryStatus next) {
         if (this.isDeleted()) {
             throw new DeliveryException(DeliveryErrorCode.DELIVERY_ALREADY_DELETED);

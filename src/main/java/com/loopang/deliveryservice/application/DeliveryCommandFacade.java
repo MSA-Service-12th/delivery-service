@@ -70,6 +70,6 @@ public class DeliveryCommandFacade implements DeliveryCommandService {
 	@Override
 	public void handleOrderRollback(OrderAcceptedPayload payload, boolean force) {
 		// 주문 기반으로 배송을 찾아 취소 처리 (보상 트랜잭션)
-		deliveryCommandCore.cancelByOrderId(payload.orderId());
+		deliveryCommandCore.cancelByOrderId(payload.orderId(), force);
 	}
 }

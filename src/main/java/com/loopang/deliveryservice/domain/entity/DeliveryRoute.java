@@ -15,6 +15,7 @@ import lombok.NoArgsConstructor;
 
 import org.hibernate.annotations.SQLRestriction;
 
+import java.util.Objects;
 import java.util.UUID;
 
 @Table(name = "p_delivery_route")
@@ -63,7 +64,7 @@ public class DeliveryRoute extends BaseUserEntity {
 
     // 배송경로-배송 연관관계 동기화
     public void updateDelivery(Delivery delivery) {
-        this.delivery = delivery;
+        this.delivery = Objects.requireNonNull(delivery);
     }
 
     // 배송경로 예상 시간/예상 거리 업데이트
@@ -113,6 +114,11 @@ public class DeliveryRoute extends BaseUserEntity {
 
     public void cancel() {
         validateTransition(DeliveryRouteStatus.CANCELLED);
+        this.status = DeliveryRouteStatus.CANCELLED;
+    }
+
+    // 강제 취소 (상태 전이 검증 생략)
+    public void forceCancel() {
         this.status = DeliveryRouteStatus.CANCELLED;
     }
 

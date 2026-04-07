@@ -77,8 +77,14 @@ public class DeliveryCommandCore {
 
     // 주문 기반 취소 (보상 트랜잭션용)
     @Transactional
-    public void cancelByOrderId(UUID orderId) {
+    public void cancelByOrderId(UUID orderId, boolean force) {
         deliveryRepository.findByOrderId(orderId)
-                .ifPresent(delivery -> delivery.changeStatus(DeliveryStatus.CANCELLED));
+                .ifPresent(delivery -> {
+                    if (force) {
+                        delivery.forceCancel();
+                    } else {
+                        delivery.changeStatus(DeliveryStatus.CANCELLED);
+                    }
+                });
     }
 }
