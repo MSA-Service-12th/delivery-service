@@ -197,6 +197,11 @@ public class Delivery extends BaseUserEntity {
                 .findFirst()
                 .orElseThrow(() -> new DeliveryException(DeliveryErrorCode.DELIVERY_ROUTE_NOT_FOUND));
 
+        // [순차 진행 검증] 이전 구간이 완료되었는지 확인 (단, 취소는 예외)
+        if (requiresOrderedProgress(nextStatus) && hasUnfinishedPredecessor(targetRoute)) {
+            throw new DeliveryException(DeliveryErrorCode.DELIVERY_PREDECESSOR_NOT_COMPLETED);
+        }
+
         // 1. 해당 구간의 상태 전이 수행
         applyStatusChange(targetRoute, nextStatus);
 
@@ -207,6 +212,20 @@ public class Delivery extends BaseUserEntity {
         if (nextStatus == DeliveryRouteStatus.COMPLETED) {
             handoverToNextCourier(targetRoute.getRouteEdge().getSequence());
         }
+    }
+
+    private boolean requiresOrderedProgress(DeliveryRouteStatus nextStatus) {
+        return nextStatus == DeliveryRouteStatus.IN_TRANSIT_TO_HUB
+                || nextStatus == DeliveryRouteStatus.ARRIVED_AT_DEST_HUB
+                || nextStatus == DeliveryRouteStatus.IN_TRANSIT_TO_COMPANY
+                || nextStatus == DeliveryRouteStatus.COMPLETED;
+    }
+
+    private boolean hasUnfinishedPredecessor(DeliveryRoute targetRoute) {
+        int sequence = targetRoute.getRouteEdge().getSequence();
+        return this.deliveryRoutes.stream()
+                .filter(r -> r.getRouteEdge().getSequence() < sequence)
+                .anyMatch(r -> r.getStatus() != DeliveryRouteStatus.COMPLETED);
     }
 
     private void syncOverallStatus(DeliveryRoute route, DeliveryRouteStatus nextStatus) {
