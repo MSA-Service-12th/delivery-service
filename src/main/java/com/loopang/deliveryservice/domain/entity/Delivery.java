@@ -9,20 +9,23 @@ import com.loopang.deliveryservice.domain.vo.CourierType;
 import com.loopang.deliveryservice.domain.vo.delivery.DeliveryStatus;
 import com.loopang.deliveryservice.domain.vo.delivery.Destination;
 import com.loopang.deliveryservice.domain.vo.delivery.Origin;
+import com.loopang.deliveryservice.domain.vo.deliveryroute.DeliveryRelation;
+import com.loopang.deliveryservice.domain.vo.deliveryroute.DeliveryRouteStatus;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.SQLRestriction;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-@Embeddable
 @Entity
 @Getter
 @Table(name = "p_delivery")
+@SQLRestriction("deleted_at is null")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Delivery extends BaseUserEntity {
 
@@ -37,7 +40,7 @@ public class Delivery extends BaseUserEntity {
     @Enumerated(EnumType.STRING)
     private DeliveryStatus status;
 
-    // 출발지(공급업체) 정보
+    // 출발지(공급업체) 허브 정보
     @Embedded
     private Origin origin;
 
@@ -67,6 +70,8 @@ public class Delivery extends BaseUserEntity {
         this.deliveryRoutes = new ArrayList<>();
     }
 
+    // 배송 엔티티 생성
+
     public static Delivery from(OrderAcceptedPayload payload) {
         return Delivery.builder()
                 .orderId(payload.orderId())
@@ -77,6 +82,16 @@ public class Delivery extends BaseUserEntity {
     }
 
     // 배송담당자 지정
+
+    public void updateCurrentCourier(UUID courierId, CourierType type) {
+        if (type == CourierType.HUB) {
+            this.hubCourierId = courierId;
+            this.companyCourierId = null;
+        } else {
+            this.companyCourierId = courierId;
+            this.hubCourierId = null;
+        }
+    }
 
     public void updateCourierId(CourierData courierData) {
         if (CourierType.valueOf(courierData.deliveryChargeType()) == CourierType.HUB) {
@@ -110,5 +125,50 @@ public class Delivery extends BaseUserEntity {
         if (!this.status.checkTransition(next)) {
             throw new DeliveryException(DeliveryErrorCode.DELIVERY_INVALID_STATUS_TRANSITION);
         }
+    }
+
+    // 배송경로 추가
+    public void addDeliveryRoute(DeliveryRoute nextRoute) {
+        this.deliveryRoutes.add(nextRoute);
+        nextRoute.updateDelivery(this);
+    }
+
+    // [애그리거트 루트 기능] 특정 구간의 상태 변경 및 담당자 인계 제어
+    public void updateRouteStatus(UUID routeId, DeliveryRouteStatus nextStatus) {
+        DeliveryRoute targetRoute = this.deliveryRoutes.stream()
+                .filter(r -> r.getDeliveryRouteId().equals(routeId))
+                .findFirst()
+                .orElseThrow(() -> new DeliveryException(DeliveryErrorCode.DELIVERY_ROUTE_NOT_FOUND));
+
+        // 1. 해당 구간의 상태 전이 수행
+        applyStatusChange(targetRoute, nextStatus);
+
+        // 2. 구간 완료 시 다음 구간 담당자로 인계
+        if (nextStatus == DeliveryRouteStatus.COMPLETED) {
+            handoverToNextCourier(targetRoute.getRouteEdge().getSequence());
+        }
+    }
+
+    private void applyStatusChange(DeliveryRoute route, DeliveryRouteStatus nextStatus) {
+        switch (nextStatus) {
+            case IN_TRANSIT_TO_HUB -> route.transitToHub();
+            case ARRIVED_AT_DEST_HUB -> route.arrivedAtDestination();
+            case IN_TRANSIT_TO_COMPANY -> route.transitToCompany();
+            case COMPLETED -> route.completed();
+            case CANCELLED -> route.cancel();
+            default -> throw new DeliveryException(DeliveryErrorCode.DELIVERY_INVALID_STATUS_TRANSITION);
+        }
+    }
+
+    private void handoverToNextCourier(int currentSequence) {
+        this.deliveryRoutes.stream()
+                .filter(r -> r.getRouteEdge().getSequence() == currentSequence + 1)
+                .findFirst()
+                .ifPresent(nextRoute -> {
+                    UUID nextCourierId = nextRoute.getCourierInfo().getCourierId();
+                    CourierType type = (nextRoute.getDeliveryRelation() == DeliveryRelation.HUB_TO_HUB)
+                            ? CourierType.HUB : CourierType.COMPANY;
+                    this.updateCurrentCourier(nextCourierId, type);
+                });
     }
 }
