@@ -4,9 +4,11 @@ import com.loopang.common.messaging.IdempotentConsumer;
 import com.loopang.common.util.JsonUtil;
 import com.loopang.deliveryservice.application.DeliveryCommandService;
 import com.loopang.deliveryservice.domain.event.payload.OrderAcceptedPayload;
+import com.loopang.deliveryservice.infrastructure.kafka.OrderTopicProperties;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.MDC;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.kafka.support.KafkaHeaders;
@@ -16,6 +18,7 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 @RequiredArgsConstructor
+@EnableConfigurationProperties(OrderTopicProperties.class)
 public class OrderAcceptedListener implements InboundEventListener {
 
 	private final DeliveryCommandService deliveryCommandService;
