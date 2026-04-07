@@ -3,6 +3,7 @@ package com.loopang.deliveryservice.application;
 import com.loopang.deliveryservice.domain.entity.Delivery;
 import com.loopang.deliveryservice.domain.entity.DeliveryRoute;
 import com.loopang.deliveryservice.domain.repository.DeliveryRepository;
+import com.loopang.deliveryservice.domain.vo.delivery.DeliveryStatus;
 import com.loopang.deliveryservice.domain.vo.deliveryroute.RouteEdge;
 import com.loopang.deliveryservice.domain.event.payload.OrderAcceptedPayload;
 import com.loopang.deliveryservice.domain.service.dto.RouteEdgeData;
@@ -65,6 +66,14 @@ public class DeliveryCommandCore {
 
         // 5. DB 저장 (Cascade에 의해 Route도 함께 저장)
         return deliveryRepository.save(delivery);
+    }
+
+    // 배송 전체 상태 강제 변경 (트랜잭션)
+    public void updateStatus(UUID deliveryId, DeliveryStatus status) {
+        Delivery delivery = deliveryRepository.findById(deliveryId)
+                .orElseThrow(() -> new DeliveryException(DeliveryErrorCode.DELIVERY_NOT_FOUND));
+
+        delivery.changeStatus(status);
     }
 
     // 삭제

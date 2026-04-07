@@ -133,6 +133,20 @@ public class Delivery extends BaseUserEntity {
         nextRoute.updateDelivery(this);
     }
 
+    // [애그리거트 루트 기능] 전체 배송 상태 강제 변경 (관리자/시스템용)
+    public void changeStatus(DeliveryStatus nextStatus) {
+        switch (nextStatus) {
+            case ON_DELIVERY -> this.onDelivery();
+            case COMPLETED -> this.complete();
+            case CANCELLED -> {
+                this.cancel();
+                // 전체 취소 시 모든 하위 구간도 함께 취소
+                this.deliveryRoutes.forEach(DeliveryRoute::cancel);
+            }
+            default -> throw new DeliveryException(DeliveryErrorCode.DELIVERY_INVALID_STATUS_TRANSITION);
+        }
+    }
+
     // [애그리거트 루트 기능] 특정 구간의 상태 변경 및 담당자 인계, 전체 배송 상태 제어
     public void updateRouteStatus(UUID routeId, DeliveryRouteStatus nextStatus) {
         DeliveryRoute targetRoute = this.deliveryRoutes.stream()

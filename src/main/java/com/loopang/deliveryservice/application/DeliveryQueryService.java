@@ -4,8 +4,6 @@ import com.loopang.deliveryservice.domain.entity.Delivery;
 import com.loopang.deliveryservice.domain.exception.DeliveryErrorCode;
 import com.loopang.deliveryservice.domain.exception.DeliveryException;
 import com.loopang.deliveryservice.domain.repository.DeliveryQueryRepository;
-import com.loopang.deliveryservice.domain.repository.DeliveryRepository;
-import com.loopang.deliveryservice.presentation.dto.DeliveryRequestDto;
 import com.loopang.deliveryservice.presentation.dto.DeliveryResponseDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -24,7 +22,7 @@ public class DeliveryQueryService {
 
     // 단건 조회
     public DeliveryResponseDto getDelivery(UUID deliveryId) {
-        Delivery delivery = deliveryRepository.findById(deliveryId)
+        Delivery delivery = deliveryRepository.findByDeliveryId(deliveryId)
                 .orElseThrow(() -> new DeliveryException(DeliveryErrorCode.DELIVERY_NOT_FOUND));
 
         return DeliveryResponseDto.from(delivery);

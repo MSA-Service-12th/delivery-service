@@ -2,6 +2,8 @@ package com.loopang.deliveryservice.application;
 
 import com.loopang.deliveryservice.domain.event.payload.OrderAcceptedPayload;
 
+import com.loopang.deliveryservice.domain.vo.delivery.DeliveryStatus;
+
 import java.util.UUID;
 
 public interface DeliveryCommandService {
@@ -10,5 +12,7 @@ public interface DeliveryCommandService {
 
 	void deleteDelivery(UUID deliveryId);
 
-	void handleOrderRollback(OrderAcceptedPayload payload, boolean b);
+	void updateDeliveryStatus(UUID deliveryId, DeliveryStatus status);
+
+	void handleOrderRollback(OrderAcceptedPayload payload, boolean force);
 }

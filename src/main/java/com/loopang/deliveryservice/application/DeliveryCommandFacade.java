@@ -8,6 +8,7 @@ import com.loopang.deliveryservice.domain.service.RouteProvider;
 import com.loopang.deliveryservice.domain.service.dto.RouteResultData;
 import com.loopang.deliveryservice.domain.service.dto.request.RouteRequestData;
 import com.loopang.deliveryservice.domain.vo.CourierType;
+import com.loopang.deliveryservice.domain.vo.delivery.DeliveryStatus;
 import com.loopang.deliveryservice.domain.vo.deliveryroute.CourierInfo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -53,6 +54,14 @@ public class DeliveryCommandFacade implements DeliveryCommandService {
 	@Override
 	public void deleteDelivery(UUID deliveryId) {
 		deliveryCommandCore.deleteDelivery(deliveryId);
+	}
+
+	@Override
+	public void updateDeliveryStatus(UUID deliveryId, DeliveryStatus status) {
+		// 1. Core를 통해 상태 변경 (트랜잭션)
+		deliveryCommandCore.updateStatus(deliveryId, status);
+
+		// 2. 상태 변경 이벤트 발행 (필요 시 로직 보완)
 	}
 
 	@Override
