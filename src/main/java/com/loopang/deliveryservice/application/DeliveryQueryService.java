@@ -4,6 +4,7 @@ import com.loopang.deliveryservice.domain.entity.Delivery;
 import com.loopang.deliveryservice.domain.exception.DeliveryErrorCode;
 import com.loopang.deliveryservice.domain.exception.DeliveryException;
 import com.loopang.deliveryservice.domain.repository.DeliveryQueryRepository;
+import com.loopang.deliveryservice.infrastructure.persistence.DeliveryQueryCondition;
 import com.loopang.deliveryservice.presentation.dto.DeliveryResponseDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -15,7 +16,7 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-@Transactional
+@Transactional(readOnly = true)
 public class DeliveryQueryService {
 
     private final DeliveryQueryRepository deliveryRepository;
@@ -29,8 +30,8 @@ public class DeliveryQueryService {
     }
 
     // 목록 조회
-    public Page<DeliveryResponseDto> getDeliveries(Pageable pageable) {
-        return deliveryRepository.findAll(pageable)
+    public Page<DeliveryResponseDto> getDeliveries(DeliveryQueryCondition condition, Pageable pageable) {
+        return deliveryRepository.findAll(condition, pageable)
                 .map(DeliveryResponseDto::from);
     }
 }

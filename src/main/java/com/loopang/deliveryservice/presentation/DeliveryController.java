@@ -4,6 +4,7 @@ import com.loopang.common.response.CommonResponse;
 import com.loopang.deliveryservice.application.DeliveryCommandService;
 import com.loopang.deliveryservice.application.DeliveryQueryService;
 import com.loopang.deliveryservice.application.DeliveryRouteService;
+import com.loopang.deliveryservice.infrastructure.persistence.DeliveryQueryCondition;
 import com.loopang.deliveryservice.presentation.dto.DeliveryResponseDto;
 import com.loopang.deliveryservice.presentation.dto.DeliveryStatusRequestDto;
 import com.loopang.deliveryservice.presentation.dto.RouteStatusRequestDto;
@@ -33,8 +34,10 @@ public class DeliveryController {
 
     // 2. 배송 목록 조회
     @GetMapping
-    public CommonResponse<Page<DeliveryResponseDto>> getDeliveryList(Pageable pageable) {
-		Page<DeliveryResponseDto> deliveries = deliveryQueryService.getDeliveries(pageable);
+    public CommonResponse<Page<DeliveryResponseDto>> getDeliveryList(
+            @ModelAttribute DeliveryQueryCondition condition,
+            Pageable pageable) {
+		Page<DeliveryResponseDto> deliveries = deliveryQueryService.getDeliveries(condition, pageable);
 		return CommonResponse.of(deliveries);
     }
 
