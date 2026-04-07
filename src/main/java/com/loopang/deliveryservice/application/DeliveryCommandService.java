@@ -9,9 +9,9 @@ public interface DeliveryCommandService {
 
 	void createDelivery(OrderAcceptedPayload payload);
 
-	void deleteDelivery(UUID deliveryId, String userId, String userRole);
+	void deleteDelivery(UUID deliveryId, UUID userId, String userRole);
 
-	void updateDeliveryStatus(UUID deliveryId, DeliveryStatus status, String userId, String userRole);
+	void updateDeliveryStatus(UUID deliveryId, DeliveryStatus status, UUID userId, String userRole);
 
 	void handleOrderRollback(OrderAcceptedPayload payload, boolean force);
 }

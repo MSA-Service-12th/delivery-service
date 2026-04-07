@@ -55,7 +55,7 @@ public class DeliveryCommandFacade implements DeliveryCommandService {
 	}
 
 	@Override
-	public void deleteDelivery(UUID deliveryId, String userId, String userRole) {
+	public void deleteDelivery(UUID deliveryId, UUID userId, String userRole) {
 		Delivery delivery = deliveryCommandCore.findById(deliveryId);
 
 		// 마스터 관리자 및 해당 허브 관리자만 삭제 가능
@@ -65,7 +65,7 @@ public class DeliveryCommandFacade implements DeliveryCommandService {
 	}
 
 	@Override
-	public void updateDeliveryStatus(UUID deliveryId, DeliveryStatus status, String userId, String userRole) {
+	public void updateDeliveryStatus(UUID deliveryId, DeliveryStatus status, UUID userId, String userRole) {
 		Delivery delivery = deliveryCommandCore.findById(deliveryId);
 
 		// 마스터 관리자, 해당 허브 관리자, 그리고 해당 배송 담당자만 현재 배송상태 변경 가능
@@ -86,20 +86,20 @@ public class DeliveryCommandFacade implements DeliveryCommandService {
 		deliveryCommandCore.cancelByOrderId(payload.orderId(), force);
 	}
 
-	private void validateModification(Delivery delivery, String userId, String userRole) {
+	private void validateModification(Delivery delivery, UUID userId, String userRole) {
 		UserType type = UserType.from(userRole);
 		if (type == UserType.MASTER) return;
-
-		UUID userUuid = UUID.fromString(userId);
 		
 		// 해당 허브 관리자인지 확인
-		if (type == UserType.HUB && userUuid.equals(delivery.getHubManagerId())) {
+		if (type == UserType.HUB && userId.equals(delivery.getHubManagerId())) {
 			return;
 		}
 		
 		// 해당 배송 담당자인지 확인
 		if (type == UserType.DELIVERY
-				&& (userUuid.equals(delivery.getHubCourierId()) || userUuid.equals(delivery.getCompanyCourierId()))) return;
+				&& (userId.equals(delivery.getHubCourierId()) || userId.equals(delivery.getCompanyCourierId()))) {
+			return;
+		}
 
 		throw new DeliveryException(DeliveryErrorCode.DELIVERY_FORBIDDEN);
 	}

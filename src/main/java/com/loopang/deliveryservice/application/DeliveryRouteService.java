@@ -28,7 +28,7 @@ public class DeliveryRouteService {
     /**
      * 특정 배송 구간의 상태를 변경하고, 그에 따른 전체 배송 상태 동기화 및 담당자 인계를 수행합니다.
      */
-    public void updateRouteStatus(UUID routeId, DeliveryRouteStatus nextStatus, String userId, String userRole) {
+    public void updateRouteStatus(UUID routeId, DeliveryRouteStatus nextStatus, UUID userId, String userRole) {
         // 1. 배송 구간 및 애그리거트 루트(Delivery) 조회
         DeliveryRoute route = deliveryRouteRepository.findById(routeId)
                 .orElseThrow(() -> new DeliveryException(DeliveryErrorCode.DELIVERY_ROUTE_NOT_FOUND));
@@ -59,7 +59,7 @@ public class DeliveryRouteService {
         }
     }
 
-    private void validateAccess(DeliveryRoute route, String userId, String userRole) {
+    private void validateAccess(DeliveryRoute route, UUID userId, String userRole) {
         UserType type = UserType.from(userRole);
         
         // 마스터 관리자와 허브 관리자는 모든 구간 상태 변경 권한을 가짐
@@ -69,8 +69,7 @@ public class DeliveryRouteService {
 
         // 배송 담당자는 본인에게 할당된 구간만 변경 가능
         if (type == UserType.DELIVERY) {
-            UUID userUuid = UUID.fromString(userId);
-            if (route.getCourierInfo() != null && userUuid.equals(route.getCourierInfo().getCourierId())) {
+            if (route.getCourierInfo() != null && userId.equals(route.getCourierInfo().getCourierId())) {
                 return;
             }
         }

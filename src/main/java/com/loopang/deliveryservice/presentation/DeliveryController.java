@@ -29,7 +29,7 @@ public class DeliveryController {
 	@GetMapping("/{deliveryId}")
 	public CommonResponse<DeliveryResponseDto> getDelivery(
 			@PathVariable("deliveryId") UUID deliveryId,
-			@RequestHeader(value = "X-User-Id") String userId,
+			@RequestHeader(value = "X-User-UUID") UUID userId,
 			@RequestHeader(value = "X-User-Role") String userRole) {
 		DeliveryResponseDto delivery = deliveryQueryService.getDelivery(deliveryId, userId, userRole);
 		return CommonResponse.of(delivery);
@@ -40,7 +40,7 @@ public class DeliveryController {
 	public CommonResponse<Page<DeliveryResponseDto>> getDeliveryList(
 			@ModelAttribute DeliveryQueryCondition condition,
 			Pageable pageable,
-			@RequestHeader(value = "X-User-UUID") String userId,
+			@RequestHeader(value = "X-User-UUID") UUID userId,
 			@RequestHeader(value = "X-User-Role") String userRole) {
 		Page<DeliveryResponseDto> deliveries = deliveryQueryService.getDeliveries(condition, pageable, userId, userRole);
 		return CommonResponse.of(deliveries);
@@ -51,7 +51,7 @@ public class DeliveryController {
 	public CommonResponse<Void> updateRouteStatus(
 			@PathVariable("routeId") UUID routeId,
 			@Valid @RequestBody RouteStatusRequestDto request,
-			@RequestHeader(value = "X-User-UUID") String userId,
+			@RequestHeader(value = "X-User-UUID") UUID userId,
 			@RequestHeader(value = "X-User-Role") String userRole) {
 		deliveryRouteService.updateRouteStatus(routeId, request.getStatus(), userId, userRole);
 		return CommonResponse.of(null);
@@ -62,7 +62,7 @@ public class DeliveryController {
 	public CommonResponse<Void> updateDeliveryStatus(
 			@PathVariable("deliveryId") UUID deliveryId,
 			@Valid @RequestBody DeliveryStatusRequestDto request,
-			@RequestHeader(value = "X-User-UUId") String userId,
+			@RequestHeader(value = "X-User-UUID") UUID userId,
 			@RequestHeader(value = "X-User-Role") String userRole) {
 		deliveryCommandService.updateDeliveryStatus(deliveryId, request.getStatus(), userId, userRole);
 		return CommonResponse.of(null);
@@ -72,7 +72,7 @@ public class DeliveryController {
 	@DeleteMapping("/{deliveryId}")
 	public CommonResponse<Void> deleteDelivery(
 			@PathVariable("deliveryId") UUID deliveryId,
-			@RequestHeader(value = "X-User-UUID") String userId,
+			@RequestHeader(value = "X-User-UUID") UUID userId,
 			@RequestHeader(value = "X-User-Role") String userRole) {
 		deliveryCommandService.deleteDelivery(deliveryId, userId, userRole);
 		return CommonResponse.of(null);
