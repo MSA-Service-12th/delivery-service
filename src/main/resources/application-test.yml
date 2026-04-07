@@ -1,0 +1,28 @@
+spring:
+  main:
+    allow-bean-definition-overriding: true
+  application:
+    name: delivery-service-test
+  cloud:
+    config:
+      enabled: false
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      group-id: delivery-group-test
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+
+eureka:
+  client:
+    enabled: false
+
+server:
+  port: 0  # 테스트 시 무작위 포트 사용
+
+# Kafka Topic 설정 (DeliveryTopicProperties 바인딩용)
+topics:
+  delivery:
+    created: delivery.created
+    status-updated: delivery.status-updated
