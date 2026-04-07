@@ -20,5 +20,5 @@ spring:
           defaultZone: ${EUREKA_SERVER_URL:http://localhost:18761/eureka}
 
     server:
-      port: 18085
+      port: 18099
 

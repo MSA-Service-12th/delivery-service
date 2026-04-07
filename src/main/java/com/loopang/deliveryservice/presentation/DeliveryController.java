@@ -1,66 +1,68 @@
 package com.loopang.deliveryservice.presentation;
 
-import com.loopang.deliveryservice.application.DeliveryService;
-import com.loopang.deliveryservice.domain.delivery.Delivery;
-import com.loopang.deliveryservice.domain.delivery.DeliveryStatus;
-import com.loopang.deliveryservice.presentation.dto.DeliveryRequestDto;
+import com.loopang.common.response.CommonResponse;
+import com.loopang.deliveryservice.application.DeliveryCommandService;
+import com.loopang.deliveryservice.application.DeliveryQueryService;
+import com.loopang.deliveryservice.application.DeliveryRouteService;
+import com.loopang.deliveryservice.infrastructure.persistence.DeliveryQueryCondition;
 import com.loopang.deliveryservice.presentation.dto.DeliveryResponseDto;
+import com.loopang.deliveryservice.presentation.dto.DeliveryStatusRequestDto;
+import com.loopang.deliveryservice.presentation.dto.RouteStatusRequestDto;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.UUID;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/deliveries")
+@RequestMapping("/api/deliveries")
 public class DeliveryController {
 
-    private final DeliveryService deliveryService;
+	private final DeliveryCommandService deliveryCommandService;
+	private final DeliveryQueryService deliveryQueryService;
+	private final DeliveryRouteService deliveryRouteService;
 
-    //배송생성(task: 이벤트)
-    @PostMapping
-    public UUID create(@RequestParam UUID orderId) {
-
-        return deliveryService.createDelivery(orderId);
-    }
-    //배송 단건 조회
+    // 1. 배송 상세 조회 (상세 경로 포함)
     @GetMapping("/{deliveryId}")
-    public DeliveryResponseDto get(@PathVariable UUID deliveryId) {
-
-        return deliveryService.getDelivery(deliveryId);
+    public CommonResponse<DeliveryResponseDto> getDelivery(@PathVariable("deliveryId") UUID deliveryId) {
+		DeliveryResponseDto delivery = deliveryQueryService.getDelivery(deliveryId);
+		return CommonResponse.of(delivery);
     }
 
-    //배송 목록 조회
+    // 2. 배송 목록 조회
     @GetMapping
-    public List<DeliveryRequestDto> list() {
-        return deliveryService.getDeliveries();
+    public CommonResponse<Page<DeliveryResponseDto>> getDeliveryList(
+            @ModelAttribute DeliveryQueryCondition condition,
+            Pageable pageable) {
+		Page<DeliveryResponseDto> deliveries = deliveryQueryService.getDeliveries(condition, pageable);
+		return CommonResponse.of(deliveries);
     }
 
-    //배송 상태 변경
+    // 3. 배송 구간 상태 변경 (배송원용)
+    @PatchMapping("/routes/{routeId}/status")
+    public CommonResponse<Void> updateRouteStatus(
+            @PathVariable("routeId") UUID routeId,
+            @Valid @RequestBody RouteStatusRequestDto request) {
+        deliveryRouteService.updateRouteStatus(routeId, request.getStatus());
+        return CommonResponse.of(null);
+    }
+
+    // 4. 배송 전체 상태 변경 (관리자/시스템용)
     @PatchMapping("/{deliveryId}/status")
-    public void changeStatus(@PathVariable UUID deliveryId,
-                             @RequestParam DeliveryStatus status) {
-        deliveryService.changeStatus(deliveryId, status);
+    public CommonResponse<Void> updateDeliveryStatus(
+            @PathVariable("deliveryId") UUID deliveryId,
+            @Valid @RequestBody DeliveryStatusRequestDto request) {
+        deliveryCommandService.updateDeliveryStatus(deliveryId, request.getStatus());
+        return CommonResponse.of(null);
     }
 
-    //배송 삭제
-    @DeleteMapping("/{id}")
-    public void delete(@PathVariable Long id) {
-        deliveryService.delete(id);
-    }
-
-    //배송 담당자 등록
-    @PostMapping("/{id}/courier")
-    public void assignCourier(@PathVariable Long id,
-                            @RequestParam Long agentId) {
-        deliveryService.assignCourier(id, agentId);
-    }
-
-    //배송 순번 배정
-    @PostMapping("/{id}/sequence")
-    public void assignSequence(@PathVariable Long id,
-                               @RequestParam int seq) {
-        deliveryService.assignSequence(id, seq);
+    // 5. 배송 삭제 (Soft Delete)
+    @DeleteMapping("/{deliveryId}")
+    public CommonResponse<Void> deleteDelivery(@PathVariable("deliveryId") UUID deliveryId) {
+        deliveryCommandService.deleteDelivery(deliveryId);
+        return CommonResponse.of(null);
     }
 }

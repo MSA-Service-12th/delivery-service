@@ -1,67 +1,41 @@
 package com.loopang.deliveryservice.application;
 
-import com.loopang.deliveryservice.domain.route.DeliveryRoute;
-import com.loopang.deliveryservice.domain.route.DeliveryRouteRepository;
-import com.loopang.deliveryservice.presentation.dto.RouteRequestDto;
+import com.loopang.deliveryservice.domain.entity.Delivery;
+import com.loopang.deliveryservice.domain.entity.DeliveryRoute;
+import com.loopang.deliveryservice.domain.event.DeliveryEvents;
+import com.loopang.deliveryservice.domain.exception.DeliveryErrorCode;
+import com.loopang.deliveryservice.domain.exception.DeliveryException;
+import com.loopang.deliveryservice.domain.repository.DeliveryRouteRepository;
+import com.loopang.deliveryservice.domain.vo.delivery.DeliveryStatus;
+import com.loopang.deliveryservice.domain.vo.deliveryroute.DeliveryRouteStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 @Transactional
 public class DeliveryRouteService {
 
-    private final DeliveryRouteRepository routeRepository;
+    private final DeliveryRouteRepository deliveryRouteRepository;
+    private final DeliveryEvents deliveryEvents;
 
-    // 경로 생성
-    public UUID createRoute(RouteRequestDto request) {
+    public void updateRouteStatus(UUID routeId, DeliveryRouteStatus nextStatus) {
+        // 1. 배송 구간 조회
+        DeliveryRoute route = deliveryRouteRepository.findById(routeId)
+                .orElseThrow(() -> new DeliveryException(DeliveryErrorCode.DELIVERY_ROUTE_NOT_FOUND));
 
-        DeliveryRoute route = DeliveryRouteRepository.findById(request.getDeliveryId())
-                .orElseThrow(() -> {
-                    return new CustomException(ErrorCode.DELIVERY_NOT_FOUND);
-                });
+        // 2. 애그리거트 루트(Delivery) 획득
+        Delivery delivery = route.getDelivery();
 
-        DeliveryRoute route = DeliveryRoute.create(
-                request.get(),
-                request.get(),
-                request.get(),
-        );
+        // 3. 애그리거트 루트를 통해 상태 변경 및 비즈니스 규칙(담당자 인계 등) 수행
+        delivery.updateRouteStatus(routeId, nextStatus);
 
-        productRepository.save(product);
-
-
-        DeliveryRoute route = new DeliveryRoute(request);
-        routeRepository.save(route);
-        return route.getId();
-    }
-
-    // 경로 계산 (간단 예시)
-    public void calculateRoute(Long deliveryId) {
-        // 외부 API or 알고리즘 호출 위치
-    }
-
-    // 경로 수정
-    public void updateRoute(Long id, String from, String to) {
-        DeliveryRoute route = routeRepository.findById(id);
-        route.update(from, to);
-    }
-
-    // 단건 조회
-    public DeliveryRoute getRoute(Long id) {
-        return routeRepository.findById(id);
-    }
-
-    // 목록 조회
-    public List<DeliveryRoute> getRoutes(Long deliveryId) {
-        return routeRepository.findByDeliveryId(deliveryId);
-    }
-
-    // 삭제
-    public void deleteRoute(Long id) {
-        DeliveryRoute route = routeRepository.findById(id);
-        route.delete();
+        // 4. 배송이 최종 완료된 경우(마지막 구간 완료 시) 주문 도메인으로 알림 발행
+        if (delivery.getStatus() == DeliveryStatus.COMPLETED) {
+            deliveryEvents.statusUpdated(delivery);
+        }
     }
 }
