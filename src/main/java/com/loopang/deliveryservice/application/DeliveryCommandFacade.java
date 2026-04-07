@@ -59,13 +59,15 @@ public class DeliveryCommandFacade implements DeliveryCommandService {
 	@Override
 	public void updateDeliveryStatus(UUID deliveryId, DeliveryStatus status) {
 		// 1. Core를 통해 상태 변경 (트랜잭션)
-		deliveryCommandCore.updateStatus(deliveryId, status);
+		Delivery updatedDelivery = deliveryCommandCore.updateStatus(deliveryId, status);
 
-		// 2. 상태 변경 이벤트 발행 (필요 시 로직 보완)
+		// 2. 상태 변경 이벤트 발행
+		deliveryEvents.statusUpdated(updatedDelivery);
 	}
 
 	@Override
 	public void handleOrderRollback(OrderAcceptedPayload payload, boolean force) {
-		// 보상 트랜잭션 로직 (필요 시 구현)
+		// 주문 기반으로 배송을 찾아 취소 처리 (보상 트랜잭션)
+		deliveryCommandCore.cancelByOrderId(payload.orderId());
 	}
 }
