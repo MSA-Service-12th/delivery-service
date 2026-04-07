@@ -15,13 +15,16 @@ import java.util.UUID;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class Origin {
 
+	@Column(name = "departure_company_id", nullable = false)
+	private UUID departureId;
+
 	@Column(name = "departure_hub_id", nullable = false)
 	private UUID departureHubId;
 
 	@Column(name = "departure_hub_name", nullable = false)
 	private String departureHubAddress;
 
-	public static Origin of(UUID departureHubId, String departureHubAddress) {
-		return new Origin(departureHubId, departureHubAddress);
+	public static Origin of(UUID departureId, UUID departureHubId, String departureHubAddress) {
+		return new Origin(departureId, departureHubId, departureHubAddress);
 	}
 }

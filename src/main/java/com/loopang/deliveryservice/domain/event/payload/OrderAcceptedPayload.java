@@ -8,6 +8,7 @@ import java.util.UUID;
 // 주문 승인 완료 시 주문 -> 배송 방향으로 이벤트 발송
 public record OrderAcceptedPayload(
 		UUID orderId,
+		UUID supplierId,
 		UUID supplierHubId,
 		String supplierHubAddress,
 		UUID receiverHubId,
@@ -19,7 +20,7 @@ public record OrderAcceptedPayload(
 		UUID hubManagerId	// 허브관리자 ID
 ) {
 	public Origin origin() {
-		return Origin.of(supplierHubId, supplierHubAddress);
+		return Origin.of(supplierId, supplierHubId, supplierHubAddress);
 	}
 
 	public Destination destination() {
