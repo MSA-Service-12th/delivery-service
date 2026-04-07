@@ -31,7 +31,7 @@ public class CourierProviderImpl implements CourierProvider {
 			throw new DeliveryException(DeliveryErrorCode.DELIVERY_COURIER_NOT_FOUND);
 		}
 
-		String key = hubId.toString() + ":" + type.name();
+		String key = String.format("%s:%s", hubId.toString(), type.name());
 		long currentCount = counterMap.computeIfAbsent(key, k -> new AtomicLong(0)).getAndIncrement();
 
 		int index = (int) (currentCount % candidates.size());
