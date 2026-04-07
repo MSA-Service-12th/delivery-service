@@ -7,6 +7,7 @@ import com.loopang.deliveryservice.application.DeliveryRouteService;
 import com.loopang.deliveryservice.presentation.dto.DeliveryResponseDto;
 import com.loopang.deliveryservice.presentation.dto.DeliveryStatusRequestDto;
 import com.loopang.deliveryservice.presentation.dto.RouteStatusRequestDto;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -41,7 +42,7 @@ public class DeliveryController {
     @PatchMapping("/routes/{routeId}/status")
     public CommonResponse<Void> updateRouteStatus(
             @PathVariable("routeId") UUID routeId,
-            @RequestBody RouteStatusRequestDto request) {
+            @Valid @RequestBody RouteStatusRequestDto request) {
         deliveryRouteService.updateRouteStatus(routeId, request.getStatus());
         return CommonResponse.of(null);
     }
@@ -50,7 +51,7 @@ public class DeliveryController {
     @PatchMapping("/{deliveryId}/status")
     public CommonResponse<Void> updateDeliveryStatus(
             @PathVariable("deliveryId") UUID deliveryId,
-            @RequestBody DeliveryStatusRequestDto request) {
+            @Valid @RequestBody DeliveryStatusRequestDto request) {
         deliveryCommandService.updateDeliveryStatus(deliveryId, request.getStatus());
         return CommonResponse.of(null);
     }
