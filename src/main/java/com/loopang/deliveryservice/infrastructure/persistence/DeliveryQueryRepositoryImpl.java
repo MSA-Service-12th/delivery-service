@@ -3,8 +3,6 @@ package com.loopang.deliveryservice.infrastructure.persistence;
 import com.loopang.deliveryservice.domain.entity.Delivery;
 import com.loopang.deliveryservice.domain.entity.DeliveryRoute;
 import com.loopang.deliveryservice.domain.repository.DeliveryQueryRepository;
-import com.loopang.deliveryservice.domain.entity.QDelivery;
-import com.loopang.deliveryservice.domain.entity.QDeliveryRoute;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
@@ -56,6 +54,12 @@ public class DeliveryQueryRepositoryImpl implements DeliveryQueryRepository {
 		}
 		if (condition.getCompanyCourierId() != null) {
 			builder.and(delivery.companyCourierId.eq(condition.getCompanyCourierId()));
+		}
+		
+		// 배송 담당자 본인 관련 필터링 (OR 조건 적용)
+		if (condition.getSearchCourierId() != null) {
+			builder.and(delivery.hubCourierId.eq(condition.getSearchCourierId())
+					.or(delivery.companyCourierId.eq(condition.getSearchCourierId())));
 		}
 
 		List<Delivery> content = queryFactory

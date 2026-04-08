@@ -15,4 +15,7 @@ public class DeliveryQueryCondition {
     private UUID receiptHubId;
     private UUID hubCourierId;
     private UUID companyCourierId;
+
+    // 배송원 본인 관련 배송 검색용 (hubCourierId OR companyCourierId 지원)
+    private UUID searchCourierId; 
 }

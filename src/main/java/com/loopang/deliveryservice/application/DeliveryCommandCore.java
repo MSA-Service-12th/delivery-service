@@ -22,6 +22,13 @@ import java.util.UUID;
 public class DeliveryCommandCore {
 
     private final DeliveryRepository deliveryRepository;
+    private final DeliveryRouteFactory deliveryRouteFactory;
+
+    @Transactional(readOnly = true)
+    public Delivery findById(UUID deliveryId) {
+        return deliveryRepository.findById(deliveryId)
+                .orElseThrow(() -> new DeliveryException(DeliveryErrorCode.DELIVERY_NOT_FOUND));
+    }
 
     // 배송 및 동적 계산된 경로 통합 생성 (트랜잭션 보장)
     @Transactional
@@ -38,8 +45,8 @@ public class DeliveryCommandCore {
         }
 
         try {
-            // 2. Delivery 엔티티의 팩토리 메서드를 통해 애그리거트 생성
-            Delivery delivery = Delivery.createWithRoutes(payload, routeResult, firstCourier, hubCouriers, lastCourier);
+            // 2. 응용 계층의 Factory(Assembler)를 통해 애그리거트 생성
+            Delivery delivery = deliveryRouteFactory.createWithRoutes(payload, routeResult, firstCourier, hubCouriers, lastCourier);
 
             // 3. DB 저장 (Cascade에 의해 Route도 함께 저장)
             return deliveryRepository.save(delivery);
